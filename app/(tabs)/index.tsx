@@ -1,70 +1,199 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  FlatList,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const App = () => {
+  const [nome, setNome] = useState('');
+  const [endereco, setEndereco] = useState('');
+  const [contato, setContato] = useState('');
+  const [categoria, setCategoria] = useState('');
+  const [fornecedores, setFornecedores] = useState([]);
+  const [imagem, setImagem] = useState(null);
 
-export default function HomeScreen() {
+  // Função para abrir o seletor de imagens
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImagem(result.assets[0].uri);
+    }
+  };
+
+  // Função para cadastrar fornecedor
+  const adicionarFornecedor = () => {
+    if (nome && endereco && contato && categoria) {
+      setFornecedores([
+        ...fornecedores,
+        { nome, endereco, contato, categoria, imagem },
+      ]);
+      setNome('');
+      setEndereco('');
+      setContato('');
+      setCategoria('');
+      setImagem(null);
+    }
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <View style={styles.container}>
+      <ScrollView>
+        <Text style={styles.title}>Cadastro de Fornecedores</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Nome do fornecedor"
+          placeholderTextColor="#aaa"
+          value={nome}
+          onChangeText={setNome}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        <TextInput
+          style={styles.input}
+          placeholder="Endereço"
+          placeholderTextColor="#aaa"
+          value={endereco}
+          onChangeText={setEndereco}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Contato"
+          placeholderTextColor="#aaa"
+          value={contato}
+          onChangeText={setContato}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Categoria"
+          placeholderTextColor="#aaa"
+          value={categoria}
+          onChangeText={setCategoria}
+        />
+
+        <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
+          <Text style={styles.imageButtonText}>Escolher imagem</Text>
+        </TouchableOpacity>
+
+        {imagem && (
+          <Image source={{ uri: imagem }} style={styles.imagePreview} />
+        )}
+
+        <TouchableOpacity style={styles.addButton} onPress={adicionarFornecedor}>
+          <Text style={styles.addButtonText}>Cadastrar Fornecedor</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.listTitle}>Lista de Fornecedores</Text>
+
+        <FlatList
+          data={fornecedores}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.fornecedorItem}>
+              <Text style={styles.itemText}>Nome: {item.nome}</Text>
+              <Text style={styles.itemText}>Endereço: {item.endereco}</Text>
+              <Text style={styles.itemText}>Contato: {item.contato}</Text>
+              <Text style={styles.itemText}>Categoria: {item.categoria}</Text>
+              {item.imagem && (
+                <Image source={{ uri: item.imagem }} style={styles.itemImage} />
+              )}
+            </View>
+          )}
+        />
+      </ScrollView>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#2c2c2c',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#555',
+    padding: 10,
+    marginVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#3a3a3a',
+    color: '#fff',
+  },
+  imageButton: {
+    backgroundColor: '#1c5f90',
+    padding: 12,
+    borderRadius: 8,
     alignItems: 'center',
-    gap: 8,
+    marginVertical: 10,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  imageButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  addButton: {
+    backgroundColor: '#28a745',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  imagePreview: {
+    width: 120,
+    height: 120,
+    borderRadius: 8,
+    marginVertical: 15,
+    alignSelf: 'center',
+  },
+  listTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginVertical: 20,
+    textAlign: 'center',
+  },
+  fornecedorItem: {
+    backgroundColor: '#444',
+    padding: 15,
+    borderRadius: 8,
+    marginVertical: 10,
+  },
+  itemText: {
+    color: '#fff',
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  itemImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 5,
+    marginTop: 10,
   },
 });
+
+export default App;
+
